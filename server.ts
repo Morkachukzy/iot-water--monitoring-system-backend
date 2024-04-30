@@ -1,10 +1,12 @@
-import express, { Request, Response } from 'express';
-import WebSocket, { Server as WebSocketServer } from 'ws';
-import http from 'http';
-import { MongoClient, Db } from 'mongodb';
+import express, { Request, Response } from "express";
+import WebSocket, { Server as WebSocketServer } from "ws";
+import http from "http";
+import { MongoClient, Db } from "mongodb";
 
 // MongoDB connection URL
-const mongoUrl = process.env.MONGO_URL!;
+const mongoUrl =
+  process.env.MONGO_URL ??
+  "mongodb+srv://chukwukamorka:FcCFzMX0aDAWAkYs@iot-water-monitoring-sy.0iqaqlv.mongodb.net/?retryWrites=true&w=majority&appName=iot-water-monitoring-system-db";
 
 // Interface for tank data
 interface TankData {
@@ -30,12 +32,12 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: "ws" });
 
 // Handle WebSocket connections
-wss.on('connection', (ws, req) => {
+wss.on("connection", (ws, req) => {
   const url = req.url;
 
   // Handle client connections
-  if (url && url.startsWith('/tanks/')) {
-    const tankid = url.replace('/tanks/', '');
+  if (url && url.startsWith("/tanks/")) {
+    const tankid = url.replace("/tanks/", "");
 
     // Add the client to the clients map
     if (!clients[tankid]) {
@@ -44,25 +46,25 @@ wss.on('connection', (ws, req) => {
     clients[tankid].push(ws);
 
     // Handle client disconnections
-    ws.on('close', () => {
+    ws.on("close", () => {
       clients[tankid] = clients[tankid].filter((c) => c !== ws);
     });
   }
   //Handle Admin connections
-  else if (url === '/admin') {
+  else if (url === "/admin") {
     adminClients.push(ws);
 
     // Handle admin disconnections
-    ws.on('close', () => {
+    ws.on("close", () => {
       adminClients = adminClients.filter((c) => c !== ws);
     });
   }
   // Handle IoT device connections
-  else if (url === '/iot') {
+  else if (url === "/iot") {
     // Handle incoming messages
-    ws.on('message', async (message) => {
+    ws.on("message", async (message) => {
       const data: TankData = JSON.parse(message.toString());
-      const collection = db.collection('tanks');
+      const collection = db.collection("tanks");
 
       for (const tankid in data) {
         // Save the data to MongoDB
@@ -87,14 +89,14 @@ wss.on('connection', (ws, req) => {
 });
 
 // Handle REST API requests
-app.get('/tanks', async (req: Request, res: Response) => {
-  const collection = db.collection('tanks');
+app.get("/tanks", async (req: Request, res: Response) => {
+  const collection = db.collection("tanks");
   const tanks = await collection.find().toArray();
   res.json(tanks);
 });
 
-server.listen(process.env.PORT || 3000, async () => {
-  console.log('Server is running on port 3000');
+server.listen(process.env.PORT || 8080, async () => {
+  console.log("Server is running on port 3000");
   mongoClient = await MongoClient.connect(mongoUrl);
-  console.log('Connected to MongoDB');
+  console.log("Connected to MongoDB");
 });

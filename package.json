@@ -4,9 +4,14 @@
   "main": "index.js",
   "author": "hephhay <faradaydanfard@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "dev": "npx ts-node server.ts"
+  },
   "dependencies": {
     "express": "^4.19.2",
     "mongodb": "^6.5.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5",
     "ws": "^8.17.0"
   },
   "devDependencies": {
