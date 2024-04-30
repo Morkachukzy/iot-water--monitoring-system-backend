@@ -5,7 +5,7 @@
   "author": "hephhay <faradaydanfard@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "yarn install && npx ts-node server.ts"
+    "build": "npx ts-node server.ts"
   },
   "dependencies": {
     "express": "^4.19.2",

@@ -63,6 +63,7 @@ wss.on("connection", (ws, req) => {
   else if (url === "/iot") {
     // Handle incoming messages
     ws.on("message", async (message) => {
+      console.log("Websocket Connected Successfully");
       const data: TankData = JSON.parse(message.toString());
       const collection = db.collection("tanks");
 
