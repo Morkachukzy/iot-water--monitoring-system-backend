@@ -19,6 +19,19 @@ interface TankData {
 // Create an Express app
 const app = express();
 
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "welcome to IoT Water Monitoring System API",
+  });
+});
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "I'm healthy",
+  });
+});
+
 // MongoDB client and database
 let mongoClient: MongoClient;
 let db: Db;
