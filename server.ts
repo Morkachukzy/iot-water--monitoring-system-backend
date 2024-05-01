@@ -19,19 +19,6 @@ interface TankData {
 // Create an Express app
 const app = express();
 
-app.get("/", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "welcome to IoT Water Monitoring System API",
-  });
-});
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "I'm healthy",
-  });
-});
-
 // MongoDB client and database
 let mongoClient: MongoClient;
 let db: Db;
@@ -42,10 +29,11 @@ let adminClients: WebSocket[] = [];
 
 // Create an HTTP server
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server, path: "ws" });
+const wss = new WebSocketServer({ server });
 
 // Handle WebSocket connections
 wss.on("connection", (ws, req) => {
+  console.log("new connection", req.url);
   const url = req.url;
 
   // Handle client connections
@@ -76,7 +64,6 @@ wss.on("connection", (ws, req) => {
   else if (url === "/iot") {
     // Handle incoming messages
     ws.on("message", async (message) => {
-      console.log("Websocket Connected Successfully");
       const data: TankData = JSON.parse(message.toString());
       const collection = db.collection("tanks");
 
@@ -85,6 +72,9 @@ wss.on("connection", (ws, req) => {
         await collection.insertMany([{ tankid, ...data[tankid] }]);
 
         // Broadcast data to connected clients for the same tankid
+        if (!clients[tankid]) {
+          clients[tankid] = [];
+        }
         clients[tankid].forEach((client) => {
           if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({ [tankid]: data[tankid] }));
@@ -100,6 +90,10 @@ wss.on("connection", (ws, req) => {
       }
     });
   }
+  // Handle unknown connections
+  else {
+    ws.close();
+  }
 });
 
 // Handle REST API requests
@@ -110,7 +104,8 @@ app.get("/tanks", async (req: Request, res: Response) => {
 });
 
 server.listen(process.env.PORT || 8080, async () => {
-  console.log("Server is running on port 3000");
   mongoClient = await MongoClient.connect(mongoUrl);
   console.log("Connected to MongoDB");
+  db = mongoClient.db();
+  console.log("Server is running on port 3000");
 });
